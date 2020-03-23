@@ -11,32 +11,65 @@
                          callback: showInfo,
                          simpleSheet: true } )
       }
-
+      function onlyUnique(value, index, self) {
+          return self.indexOf(value) === index;
+      }
       function showInfo(data, tabletop) {
         content = data;
-        var item, anchor;
+        var allContent = [];
+        var allCategories = [];
+        var items, anchor;
         var count=0;
-        $.each( content, function( key, value ) {
+        $.each( content, function( key, value ) { // each row
+          var row = {};
           $.each( value, function( key, value ) {
-            if(key=="URL (web link)") {
-              anchor = "<a href=" + value +"'>"
-            }
-            if(key=="Title / Headline") {
-              item = "<div class='item' id='item-" + count +"'><h3>" + anchor;
-              item += value
-              item += "</a></h3></div>"
-              console.log(key, item)
-              $("#submissions").append(item)
-            }
-            if(key=="Brief Description") {
-              item = "<div class='description'>"
-              item += value
-              item += "</div>"
-              console.log(key, item)
-              $("#item-" + count).append(item)
-              count++;
+            switch(key) {
+              case "Timestamp":
+                row.timestamp = value;
+                break;
+              case "URL (web link)":
+                row.href = value;
+                break;
+              case "Title / Headline":
+                row.title = value;
+                break;
+              case "Image (please include a web link to an image if there is one)":
+                row.imageurl = value;
+                break;
+              case "Brief Description":
+                row.description = value;
+                break;
+              case "Category":
+                row.category = value;
+                allCategories.push(value);
+                break;
+              case "If you chose \"Other\", what's the category?:":
+                row.other = value;
+                break;
+              case "Your name (Optionally private & can just be first.)":
+                row.author = value;
+                break;
+              case "Vetted - ok or no?":
+                row.vetted = value;
+                if(value=='Ok') allContent.push(row);
+                break;
             }
           });
+        });
+        var uCats = allCategories.filter( onlyUnique );
+        $.each( uCats.sort(), function( index, cat ) {
+          items = "<div class=\"section\"><h4>" + cat + "</h4>"
+            $.each( allContent, function( key, value ) { // each row
+              if(value.category==cat) {
+                  items += "<div class='item' id='item-" + count +"'>";
+                    items += "<div class='itemImg'><img src='" + value.imageurl + "'/></div>"
+                  items += "<h3><a href=" + value.href +"'>" + value.title + "</a></h3>"
+                  items += "<div class='description'>" + value.description + "</div></div>"
+                  count++;
+              }
+            });
+          items += "</div>";
+          $("#submissions").append(items)
         });
       }
 
@@ -48,9 +81,14 @@
     h1 {font-family: 'Elsie Swash Caps', cursive; font-size:3.2em}
     h2 {font-family: 'Roboto:400', sans-serif; font-size:1.3em}
     body {font-family: 'Roboto', sans-serif;padding:20px}
-    .item {padding:20px; margin-bottom:20px;background-color:#eeeeee;}
+    .item {padding:10px 3px; margin-bottom:20px;background-color:#eeeeee;height:120px}
     h3 {font-family: 'Roboto', sans-serif; font-weight:700;font-size:1.3em}
+    h4 {background-color:#FF2E93; padding:5 10px; text-transform:uppercase; display:inline; font-size:14px;color:#ffffff; border-radius: 5px;}
     a {color:#FF2E93}
+    .item {margin-top:14px; }
+    .section {margin-top:50px}
+    .itemImg {width:150px;height:100px;float:left;margin:0 10px;overflow:hidden; }
+    .itemImg img {object-fit:contain;display:block;width:100%}
   </style>
 </head>
   <body>
